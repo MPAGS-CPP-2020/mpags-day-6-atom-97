@@ -3,7 +3,7 @@
 #include "catch.hpp"
 
 #include "ProcessCommandLine.hpp"
-
+/*
 TEST_CASE("Help found correctly", "[commandline]") {
 
   ProgramSettings prog_set{false, false, "", "", "", CipherMode::Encrypt, CipherType::Caesar};
@@ -137,4 +137,4 @@ TEST_CASE("Cipher type declared with Playfair cipher"){
 
   REQUIRE( res );
   REQUIRE( prog_set.cipherType == CipherType::Playfair);
-}
+}*/

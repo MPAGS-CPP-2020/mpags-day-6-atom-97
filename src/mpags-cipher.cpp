@@ -13,6 +13,7 @@
 #include "CipherType.hpp"
 #include "TransformChar.hpp"
 #include "ProcessCommandLine.hpp"
+#include "Exceptions.hpp"
   
 // Main function of the mpags-cipher program
 int main(int argc, char* argv[])
@@ -24,13 +25,16 @@ int main(int argc, char* argv[])
   ProgramSettings settings { false, false, "", "", "", CipherMode::Encrypt, CipherType::Caesar };
 
   // Process command line arguments
-  bool cmdLineStatus { processCommandLine(cmdLineArgs, settings) };
-
-  // Any failure in the argument processing means we can't continue
-  // Use a non-zero return value to indicate failure
-  if( !cmdLineStatus ) {
+  try { processCommandLine(cmdLineArgs, settings); }
+  catch(MissingArgument& e){
+    std::cerr <<"[error] Missing argument: " << e.what() <<std::endl;
     return 1;
   }
+  catch(UnknownArgument& e){
+    std::cerr <<"[error] Unknown argument: " << e.what() <<std::endl;
+    return 1;
+  }
+  
 
   // Handle help, if requested
   if (settings.helpRequested) {
@@ -103,8 +107,14 @@ int main(int argc, char* argv[])
   }
 
   // Request construction of the appropriate cipher
-  auto cipher = cipherFactory( settings.cipherType, settings.cipherKey );
-
+  std::unique_ptr<Cipher> cipher;
+  try {
+    cipher = cipherFactory( settings.cipherType, settings.cipherKey );
+  } catch (InvalidKey& e) {
+    std::cerr << "[error] Missing argument: " << e.what() << std::endl;
+    return 1;
+  }
+  
   // Check that the cipher was constructed successfully
   if ( ! cipher ) {
     std::cerr << "[error] problem constructing requested cipher" << std::endl;

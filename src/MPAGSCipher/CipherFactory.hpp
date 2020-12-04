@@ -6,6 +6,7 @@
 
 #include "Cipher.hpp"
 #include "CipherType.hpp"
+#include "Exceptions.hpp"
 
 /**
  * \file CipherFactory.hpp

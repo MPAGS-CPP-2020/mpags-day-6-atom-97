@@ -4,6 +4,7 @@
 add_library(MPAGSCipher STATIC
   Alphabet.hpp
   Cipher.hpp
+  Exceptions.hpp
   CipherFactory.hpp
   CipherFactory.cpp
   CipherMode.hpp
