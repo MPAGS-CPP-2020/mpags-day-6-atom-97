@@ -3,6 +3,9 @@
 #include <iostream>
 #include <string>
 #include <vector>
+#include <future>
+#include <thread>
+#include <chrono>
 
 // Our project headers
 #include "CipherFactory.hpp"
@@ -108,9 +111,42 @@ int main(int argc, char* argv[])
     return 1;
   }
 
-  // Run the cipher on the input text, specifying whether to encrypt/decrypt
-  std::string outputText { cipher->applyCipher( inputText, settings.cipherMode ) };
+  // initialize output string to enable appendig from individual threads
+  std::string outputText{""};
 
+  // Run the cipher on the input text, specifying whether to encrypt/decrypt
+
+  // If Caesar, apply multithreading
+  if (settings.cipherType==CipherType::Caesar){
+    // Number of threads to run
+    size_t nThreads = 10;
+    // Limitting positions of input parts
+    size_t pos=inputText.size()/nThreads;
+    
+    std::string inputPart{""};
+    std::vector<std::future<std::string>> futures;
+    
+     
+    for (size_t i{0}; i<nThreads; i++){
+      // split up the  input string
+      if (i<nThreads-1) { inputPart=inputText.substr(i*pos, pos); }
+      else { inputPart=inputText.substr(i*pos); }
+      
+      // process a part of the input asynchronously
+      //std::cout << "Initialising thread " << i << ", processing the string " << inputPart << std::endl;
+      futures.push_back( std::async(std::launch::async, [&, inputPart] ()  { return cipher->applyCipher(inputPart, settings.cipherMode); }));
+    }
+    for (size_t i{0}; i<nThreads; i++){
+      // wait for each thread to finish
+      while (futures[i].wait_for(std::chrono::nanoseconds(1)) != std::future_status::ready) {std::cout << "Steady..."<< std::endl;}
+      // once it's finished, add the result
+      //std::cout << "Thread " << i << " has terminated succesfully" <<std::endl;
+      outputText+=futures[i].get();
+    }
+  }
+  else {
+    outputText = cipher->applyCipher( inputText, settings.cipherMode );
+  }
   // Output the transliterated text
   if (!settings.outputFile.empty()) {
 
